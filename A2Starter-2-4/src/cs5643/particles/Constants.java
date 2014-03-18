@@ -22,5 +22,8 @@ public interface Constants
     public static final double STRETCH_STIFFNESS = 1; 
     
     /** Stiffness constant for particle plane constraint. */ 
-    public static final double PARTICLE_PLANE_STIFFNESS    = 1;
+    public static final double PARTICLE_PLANE_STIFFNESS	= 1;
+    
+    /** Cloth thickness. */ 
+    public static final double h = 0; 
 }

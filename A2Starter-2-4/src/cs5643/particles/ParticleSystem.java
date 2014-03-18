@@ -170,19 +170,42 @@ public class ParticleSystem //implements Serializable
 	time += dt;
     }
 
+    /** Projects a given constraint and move particle accordingly. */
+    public synchronized void projectConstraint(Constraint c)
+    {
+    	
+    	
+    	
+    }
+    
+    /** Calculates scaling factor given a constraint*/ 
+    public synchronized void calculateScalingFactor(Constraint c)
+    {
+    	//First we need the sum of all the gradients.
+    	double denominator; 
+    	Vector3d gradient = new Vector3d(); 
+    	for(Particle p : c.particles)
+    	{
+    		gradient.set(c.gradient(p))
+    	}
+    	
+    	
+    	
+    }
     /** Create the initial edge constraints for the triangle.*/ 
     public synchronized void initialConstraints()
     {
-
     	for(Mesh m : M)
     	{
     		for(Edge e : m.edges)
     		{	
-
+    			//Add all stretch constraints. 
     			C.add(new StretchConstraint(e.v0,e.v1,e.restLength));
     		}
     	}
     }
+    
+    /**
 
     /**
      * Displays Particle and Force objects.

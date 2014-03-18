@@ -23,9 +23,9 @@ public class StretchConstraint extends Constraint {
 		//Get two positions of the particles   
 		//Get length between them 
 		Vector3d diff = new Vector3d(); 
-		Point3d p1 = particles.get(0).x;
-		Point3d p2 = particles.get(1).x; 
-		diff.set(p1.x-p2.x, p1.y-p2.y, p1.z-p2.z);
+		Particle p1 = particles.get(0);
+		Particle p2 = particles.get(1); 
+		diff.set(p1.x.x-p2.x.x, p1.x.y-p2.x.y, p1.x.z-p2.x.z);
 		//Subtract length of edge  
 		return diff.length()-l0;
 	}
