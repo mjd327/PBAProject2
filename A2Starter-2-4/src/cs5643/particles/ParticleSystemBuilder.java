@@ -60,8 +60,7 @@ public class ParticleSystemBuilder implements GLEventListener
     /** Main constructor. Call start() to begin simulation. */
     ParticleSystemBuilder() 
     {
-	PS = new ParticleSystem();
-	Constraint.PS = PS; 
+    	PS = new ParticleSystem();
     }
 
     /**
