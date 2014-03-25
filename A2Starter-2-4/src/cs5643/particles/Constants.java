@@ -21,6 +21,9 @@ public interface Constants
     /** Stiffness constant for stretch constraint. */
     public static final double STRETCH_STIFFNESS 			= 1; 
     
+    /**Stiffness constant for bend constraint. */
+    public static final double BEND_STIFFNESS 				= 1;
+    
     /** Stiffness constant for particle plane constraint. */ 
     public static final double PARTICLE_PLANE_STIFFNESS		= 1;
 

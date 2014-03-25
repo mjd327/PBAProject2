@@ -19,7 +19,7 @@ public abstract class Constraint {
 	public abstract double evaluateConstraint();
 	
 	//Evaluates gradient with respect to particle i 
-	public abstract Vector3d gradient(); 
+	public abstract Vector3d gradient(Particle p); 
 	
 	// 0 = Equality
 	// 1 = Inequality

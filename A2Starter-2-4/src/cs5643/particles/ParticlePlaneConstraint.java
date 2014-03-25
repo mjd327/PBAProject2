@@ -24,7 +24,8 @@ public class ParticlePlaneConstraint extends Constraint {
 
 
 	@Override
-	public double evaluateConstraint() {
+	public double evaluateConstraint()
+	{
 		Particle q = particles.get(0);
 		Point3d p1 = planePoints.get(0);
 		Point3d p2 = planePoints.get(1);
@@ -43,8 +44,10 @@ public class ParticlePlaneConstraint extends Constraint {
 		temp2.sub(q.x,p1);
 		return temp1.dot(temp2) - Constants.h;
 	}
+	
 	/** Computes the gradient of the constraint. Always done with respect to q*/ 
-	public Vector3d gradient(Particle p){
+	public Vector3d gradient(Particle p)
+	{
 		Vector3d temp1 = new Vector3d(0,0,0);
 		Vector3d temp2 = new Vector3d(); 
 		Particle q = particles.get(0);
