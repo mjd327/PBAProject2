@@ -13,7 +13,7 @@ public class ParticlePlaneConstraint extends Constraint {
 	
 	/** If p1,p2,p3 are counter-clockwise then normal is towards the viewer.*/
 	public ParticlePlaneConstraint(Particle q, Point3d p1, Point3d p2, Point3d p3){
-		type = 0; 
+		type = 1; 
 		stiffness = Constants.PARTICLE_PLANE_STIFFNESS;
 		cardinality = 4;
 		particles.add(q);
@@ -40,7 +40,7 @@ public class ParticlePlaneConstraint extends Constraint {
 		temp1.normalize(); 
 		
 		//Dot product with the normal vector and offset by thickness. 
-		temp2.sub(q.x,p1);
+		temp2.sub(q.p,p1);
 		return temp1.dot(temp2) - Constants.h;
 	}
 	/** Computes the gradient of the constraint. Always done with respect to q*/ 
@@ -48,9 +48,9 @@ public class ParticlePlaneConstraint extends Constraint {
 		Vector3d temp1 = new Vector3d(0,0,0);
 		Vector3d temp2 = new Vector3d(); 
 		Particle q = particles.get(0);
-		Point3d p1 = planePoints.get(1);
-		Point3d p2 = planePoints.get(2);
-		Point3d p3 = planePoints.get(3);
+		Point3d p1 = planePoints.get(0);
+		Point3d p2 = planePoints.get(1);
+		Point3d p3 = planePoints.get(2);
 		if(!p.equals(q))
 		{
 			return temp1;
