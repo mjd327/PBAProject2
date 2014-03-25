@@ -29,5 +29,20 @@ public class StretchConstraint extends Constraint {
 		//Subtract length of edge  
 		return diff.length()-l0;
 	}
+	
+	@Override
+	public Vector3d gradient(Particle p) {
+		Vector3d grad = new Vector3d();
+		Particle p1 = particles.get(0);
+		Particle p2 = particles.get(1); 
+		grad.set(p1.x.x-p2.x.x, p1.x.y-p2.x.y, p1.x.z-p2.x.z);
+		grad.normalize();
+		if(p.equals(p1)) 
+		{
+			return grad;
+		}
+		grad.scale(-1);
+		return grad; 
+	}
 
 }

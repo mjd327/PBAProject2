@@ -28,10 +28,11 @@ public class ParticleSystem //implements Serializable
     /** List of Force objects. */
     public ArrayList<Force>      F = new ArrayList<Force>();
     
-    /** List of Constraint objects. */
-    public ArrayList<Constraint> C = new ArrayList<Constraint>(); 
+    /** List of permanent Constraint objects. */
+    public ArrayList<Constraint> CPerm = new ArrayList<Constraint>(); 
     
-    
+    /** List of temporary Constraint objects. */ 
+    public ArrayList<Constraint> CTemp = new ArrayList<Constraint>(); 
     /** 
      * true iff prog has been initialized. This cannot be done in the
      * constructor because it requires a GL2 reference.
@@ -44,6 +45,9 @@ public class ParticleSystem //implements Serializable
     /** Filename of fragment shader source. */
     public static final String[] FRAG_SOURCE = {"frag.glsl"};
 
+    /** Used for various testing purposes. */
+    public static boolean test = true; 
+    
     /** The shader program used by the particles. */
     ShaderProgram prog;
 
@@ -134,7 +138,8 @@ public class ParticleSystem //implements Serializable
      */
     public synchronized void advanceTime(double dt)
     {
-    	
+	for(Particle p : P)  p.f.set(0,0,0);
+
     for(Force force : F) {
       force.applyForce();
 	}
@@ -146,6 +151,7 @@ public class ParticleSystem //implements Serializable
 	    p.v.scaleAdd(dt, p.f, p.v); //p.v += dt * p.f;
 	}
 	//dampVelocities()
+	test = true; 
 	for(Particle p : P)
 	{
 	    p.p.scaleAdd(dt, p.v, p.x); //p.p = p.x + dt * p.v; 
@@ -153,45 +159,122 @@ public class ParticleSystem //implements Serializable
 	for(Particle p : P)
 	{
 		//generateCollisionConstraints(xi->pi (?) );
+		wallCollisionDetector(p);
 	}
 	for(int i = 0; i < Constants.SOLVER_ITERATIONS; i++)
 	{
+		System.out.println("Test");
 		//projectConstraints(C1,...,CM+MColl,p1,...,pn);
+		for(Constraint c : CPerm)
+		{
+			projectConstraint(c);
+		}
+		for(Constraint c : CTemp)
+		{
+			projectConstraint(c);
+		}
 	}
 	for(Particle p : P)
 	{
 		temp.sub(p.p,p.x);
-		temp.scale(dt);
+		temp.scale(1.0/dt);
 		p.v.set(temp); 
 		p.x.set(p.p);
 	}
 	//velocityUpdate(v1,...,Vn);
-	
+	CTemp.clear();
 	time += dt;
     }
 
     /** Projects a given constraint and move particle accordingly. */
     public synchronized void projectConstraint(Constraint c)
     {
-    	
-    	
+    	if(c.type == 0 || c.evaluateConstraint() <= 0)
+    	{
+    		//We need the scaling factor for our delta P calculation.
+    		double s = calculateScalingFactor(c);
+    		Vector3d gradient = new Vector3d(); 
+    		//INEFFICIENT, as we are calculating all of these twice. 
+    		for(Particle p : c.particles)
+    		{
+    			gradient = c.gradient(p); 
+    			gradient.scale(s * p.w);
+    			p.p.add(gradient);  
+
+    		}
+    	}
     	
     }
     
     /** Calculates scaling factor given a constraint*/ 
-    public synchronized void calculateScalingFactor(Constraint c)
+    public synchronized double calculateScalingFactor(Constraint c)
     {
     	//First we need the sum of all the gradients.
-    	double denominator; 
+    	double numerator = c.evaluateConstraint();
+    	double denominator = 0; 
     	Vector3d gradient = new Vector3d(); 
+    	//Add up the inverse mass times gradient magnitude squared
     	for(Particle p : c.particles)
     	{
-    		gradient.set(c.gradient(p))
+    		gradient.set(c.gradient(p));
+    		denominator += p.w * gradient.lengthSquared();
     	}
-    	
-    	
-    	
+    	return -numerator/denominator; 
     }
+    
+    /** Checks for collision with the walls. If collision detected, then 
+     * a constraint is formed.
+     */
+    public synchronized void wallCollisionDetector(Particle p)
+	{
+		//Check each wall of the cube manually, which is simplified because the surface is a unit cube. 
+    	Point3d p1; 
+    	Point3d p2; 
+    	Point3d p3; 
+		if(p.p.x < 0)
+		{
+			p1 = new Point3d(0,0,0);
+			p2 = new Point3d(0,1,0);
+			p3 = new Point3d(0,0,1);
+			CTemp.add(new ParticlePlaneConstraint(p,p1,p2,p3));
+		}
+		else if (p.p.x > 1)
+		{
+			p1 = new Point3d(1,0,0);
+			p2 = new Point3d(1,1,0);
+			p3 = new Point3d(1,0,1);
+			CTemp.add(new ParticlePlaneConstraint(p,p1,p3,p2));
+		}
+		if(p.p.y < 0)
+		{
+			p1 = new Point3d(0,0,0);
+			p2 = new Point3d(1,0,0);
+			p3 = new Point3d(0,0,1);
+			CTemp.add(new ParticlePlaneConstraint(p,p1,p3,p2));
+		}
+		else if (p.p.y > 1)
+		{
+			p1 = new Point3d(0,1,0);
+			p2 = new Point3d(1,1,0);
+			p3 = new Point3d(0,1,1);
+			CTemp.add(new ParticlePlaneConstraint(p,p1,p2,p3));
+		}
+		if(p.p.z < 0)
+		{
+			p1 = new Point3d(0,0,0);
+			p2 = new Point3d(1,0,0);
+			p3 = new Point3d(0,1,0);
+			CTemp.add(new ParticlePlaneConstraint(p,p1,p2,p3));
+		}
+		else if (p.p.z > 1)
+		{
+			p1 = new Point3d(0,0,1);
+			p2 = new Point3d(1,0,1);
+			p3 = new Point3d(0,1,1);
+			CTemp.add(new ParticlePlaneConstraint(p,p1,p3,p2));
+		}
+	}
+	
     /** Create the initial edge constraints for the triangle.*/ 
     public synchronized void initialConstraints()
     {
@@ -200,7 +283,7 @@ public class ParticleSystem //implements Serializable
     		for(Edge e : m.edges)
     		{	
     			//Add all stretch constraints. 
-    			C.add(new StretchConstraint(e.v0,e.v1,e.restLength));
+    			CPerm.add(new StretchConstraint(e.v0,e.v1,e.restLength));
     		}
     	}
     }

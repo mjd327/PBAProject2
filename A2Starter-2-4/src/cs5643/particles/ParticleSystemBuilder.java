@@ -446,7 +446,7 @@ public class ParticleSystemBuilder implements GLEventListener
      */
     private void loadMeshFromFile()
     {
-    	JFileChooser fc = new JFileChooser("/Users/mjd327/Desktop/cs5643/A2Starter-2-4");
+    	JFileChooser fc = new JFileChooser("/Users/mjd327/Desktop/PBA2/A2Starter-2-4/meshes");
     	int choice = fc.showOpenDialog(frame);
     	if (choice != JFileChooser.APPROVE_OPTION) return;
     	String fileName = fc.getSelectedFile().getAbsolutePath();
