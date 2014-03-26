@@ -1,8 +1,10 @@
 package cs5643.particles;
 
 import java.util.*;
+
 import javax.vecmath.*;
 import javax.media.opengl.*;
+
 import com.jogamp.opengl.util.glsl.*;
 
 
@@ -189,7 +191,7 @@ public class ParticleSystem //implements Serializable
     /** Projects a given constraint and move particle accordingly. */
     public synchronized void projectConstraint(Constraint c)
     {
-    	if(c.type == 0 || c.evaluateConstraint() <= 0)
+    	if((c.type == 0 && c.evaluateConstraint() !=0) || (c.type ==1 && c.evaluateConstraint() <= 0)) 
     	{
     		//We need the scaling factor for our delta P calculation.
     		double s = calculateScalingFactor(c);
@@ -278,13 +280,48 @@ public class ParticleSystem //implements Serializable
     /** Create the initial edge constraints for the triangle.*/ 
     public synchronized void initialConstraints()
     {
+    	Vertex p1,p2,p3,p4;
+    	
     	for(Mesh m : M)
     	{
     		for(Edge e : m.edges)
     		{	
     			//Add all stretch constraints. 
-    			CPerm.add(new StretchConstraint(e.v0,e.v1,e.restLength));
+    			//CPerm.add(new StretchConstraint(e.v0,e.v1,e.restLength));
+    			
+    			
+    			if(e.t0 == null || e.t1 == null)
+    				continue;
+    			else
+    			{
+    				p1 = e.v0;
+    				p2 = e.v1;
+
+    				if(!(e.t0.v0.equals(e.v0) || e.t0.v0.equals(e.v1))) p3 = e.t0.v0;
+    				else if(!(e.t0.v1.equals(e.v0) || e.t0.v1.equals(e.v1))) p3 = e.t0.v1;
+    				else if (!(e.t0.v2.equals(e.v0) || e.t0.v2.equals(e.v1))) p3 = e.t0.v2;
+    				else
+    				{
+    					p3 = null;
+    					System.out.println("t0 verticies not ordered correctly when calculating bending constraints");
+    				}
+    				
+
+    				if(!(e.t1.v0.equals(e.v1) || e.t1.v0.equals(e.v0))) p4 = e.t1.v0;
+    				else if (!(e.t1.v1.equals(e.v1) || e.t1.v1.equals(e.v0))) p4 = e.t1.v1;
+    				else if (!(e.t1.v2.equals(e.v1) || e.t1.v2.equals(e.v0))) p4 = e.t1.v2;
+    				else
+    				{
+    					p4 = null;
+    					System.out.println("t1 verticies not ordered correctly when calculating bending constraints");
+    				}
+    				
+    				
+    				CPerm.add(new BendConstraint(p1, p2, p3, p4, Math.PI));
+    			}
     		}
+    		
+    		
     	}
     }
     
