@@ -39,11 +39,12 @@ public class BendConstraint extends Constraint
 		n1.normalize();
 		n2.normalize();
 		d = n1.dot(n2);
-		if ((Math.acos(n1.dot(n2))) == 0)
-		{
-			System.out.println("hello");
-		}
-		//System.out.println("Initial Constraint: " + (Math.acos(n1.dot(n2)) - phi0));
+
+		System.out.println("Initial Constraint: " + (Math.acos(n1.dot(n2)) - phi0));
+		//if(Double.isNaN((Math.acos(n1.dot(n2)) - phi0)))
+		//{
+		//	System.out.println("stop");
+		//}
 		return Math.acos(n1.dot(n2)) - phi0;
 
 	}
@@ -131,5 +132,29 @@ public class BendConstraint extends Constraint
 		else return null; //Should never happen!
 		
 	}
+	
+	
 
+	/** Helper function for constraint initialization */
+	public static double angleBetween(Particle p0, Particle p1, Particle p2, Particle p3)
+	{
+		Vector3d v2 = new Vector3d(p1.x.x - p0.x.x, p1.x.y - p0.x.y, p1.x.z - p0.x.z);
+		Vector3d v3 = new Vector3d(p2.x.x - p0.x.x, p2.x.y - p0.x.y, p2.x.z - p0.x.z);
+		Vector3d v4 = new Vector3d(p3.x.x - p0.x.x, p3.x.y - p0.x.y, p3.x.z - p0.x.z);
+		
+		Vector3d norm1 = new Vector3d();
+		Vector3d norm2 = new Vector3d();
+		norm1.cross(v2,v3);
+		norm2.cross(v2,v4);
+		norm1.normalize();
+		norm2.normalize();
+		if(Double.isNaN(Math.acos(norm1.dot(norm2))))
+		{
+			System.out.println("initial angle is nan");
+		}
+		return Math.acos(norm1.dot(norm2));
+	}
+	
+	
+	
 }

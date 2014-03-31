@@ -165,7 +165,7 @@ public class ParticleSystem //implements Serializable
 	}
 	for(int i = 0; i < Constants.SOLVER_ITERATIONS; i++)
 	{
-		System.out.println("Test");
+		//System.out.println("Test");
 		//projectConstraints(C1,...,CM+MColl,p1,...,pn);
 		for(Constraint c : CPerm)
 		{
@@ -191,7 +191,7 @@ public class ParticleSystem //implements Serializable
     /** Projects a given constraint and move particle accordingly. */
     public synchronized void projectConstraint(Constraint c)
     {
-    	if((c.type == 0 && c.evaluateConstraint() !=0) || (c.type ==1 && c.evaluateConstraint() <= 0)) 
+    	if((c.type == 0 && c.evaluateConstraint() > Constants.epsilon) || (c.type ==1 && c.evaluateConstraint() <= 0)) 
     	{
     		//We need the scaling factor for our delta P calculation.
     		double s = calculateScalingFactor(c);
@@ -199,10 +199,9 @@ public class ParticleSystem //implements Serializable
     		//INEFFICIENT, as we are calculating all of these twice. 
     		for(Particle p : c.particles)
     		{
-    			gradient = c.gradient(p); 
+    			gradient = c.gradient(p);
     			gradient.scale(s * p.w);
-    			p.p.add(gradient);  
-
+    			p.p.add(gradient);
     		}
     	}
     	
@@ -224,7 +223,8 @@ public class ParticleSystem //implements Serializable
     	return -numerator/denominator; 
     }
     
-    /** Checks for collision with the walls. If collision detected, then 
+    /** 
+     * Checks for collision with the walls. If collision detected, then 
      * a constraint is formed.
      */
     public synchronized void wallCollisionDetector(Particle p)
@@ -287,9 +287,9 @@ public class ParticleSystem //implements Serializable
     		for(Edge e : m.edges)
     		{	
     			//Add all stretch constraints. 
-    			//CPerm.add(new StretchConstraint(e.v0,e.v1,e.restLength));
+    			CPerm.add(new StretchConstraint(e.v0,e.v1,e.restLength));
     			
-    			
+    			//Add bending constraints for non-boundary edges
     			if(e.t0 == null || e.t1 == null)
     				continue;
     			else
@@ -317,7 +317,7 @@ public class ParticleSystem //implements Serializable
     				}
     				
     				
-    				CPerm.add(new BendConstraint(p1, p2, p3, p4, Math.PI));
+    				CPerm.add(new BendConstraint(p1, p2, p3, p4, BendConstraint.angleBetween(p1, p2, p3, p4)));
     			}
     		}
     		
@@ -326,25 +326,24 @@ public class ParticleSystem //implements Serializable
     }
     
     /**
-
-    /**
      * Displays Particle and Force objects.
      */
     public synchronized void display(GL2 gl) 
     {
-	for(Force force : F) {
-	    force.display(gl);
-	}
+    	for(Force force : F)
+    	{
+    		force.display(gl);
+    	}
 
-	if(!init) init(gl);
+    	if(!init) init(gl);
 
-	prog.useProgram(gl, true);
+    	prog.useProgram(gl, true);
 	
-	for(Particle particle : P) {
-	    particle.display(gl);
-	}
+    	for(Particle particle : P)
+    	{
+    		particle.display(gl);
+    	}
 
-	prog.useProgram(gl, false);
+    	prog.useProgram(gl, false);
     }
-
 }
