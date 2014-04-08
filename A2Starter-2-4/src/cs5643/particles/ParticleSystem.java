@@ -1,10 +1,9 @@
 package cs5643.particles;
 
 import java.util.*;
+
 import javax.vecmath.*;
 import javax.media.opengl.*;
-import javax.media.opengl.glu.GLU;
-
 import com.jogamp.opengl.util.glsl.*;
 
 
@@ -206,8 +205,7 @@ public class ParticleSystem //implements Serializable
     /** Projects a given constraint and move particle accordingly. */
     public synchronized void projectConstraint(Constraint c)
     {
-    	if((c.type == 0 && Math.abs(c.evaluateConstraint()) >= .0000001) 
-    			|| (c.type == 1 && c.evaluateConstraint() <= -.0000001))
+    	if((c.type == 0 && Math.abs(c.evaluateConstraint()) > Constants.epsilon) || (c.type ==1 && c.evaluateConstraint() <= 0)) 
     	{
     		//We need the scaling factor for our delta P calculation.
     		double s = calculateScalingFactor(c);
@@ -217,12 +215,7 @@ public class ParticleSystem //implements Serializable
     		{
     			gradient = c.gradient(p); 
     			gradient.scale(s * p.w * c.kPrime);
-    			if(gradient.y > .000001 && gradient.y < -.0000001)
-    			{
-    				System.out.println("Here we are");
-    			}
     			p.p.add(gradient);  
-
     		}
     	}
     	
@@ -244,7 +237,8 @@ public class ParticleSystem //implements Serializable
     	return -numerator/denominator; 
     }
     
-    /** Checks for collision with the walls. If collision detected, then 
+    /** 
+     * Checks for collision with the walls. If collision detected, then 
      * a constraint is formed.
      */
     public synchronized void wallCollisionDetector(Particle p)
@@ -300,13 +294,48 @@ public class ParticleSystem //implements Serializable
     /** Create the initial edge constraints for the triangle.*/ 
     public synchronized void initialConstraints()
     {
+    	Vertex p1,p2,p3,p4;
+    	
     	for(Mesh m : M)
     	{
     		for(Edge e : m.edges)
     		{	
     			//Add all stretch constraints. 
     			CPerm.add(new StretchConstraint(e.v0,e.v1,e.restLength));
+    			
+    			//Add bending constraints for non-boundary edges
+    			if(e.t0 == null || e.t1 == null)
+    				continue;
+    			else
+    			{
+    				p1 = e.v0;
+    				p2 = e.v1;
+
+    				if(!(e.t0.v0.equals(e.v0) || e.t0.v0.equals(e.v1))) p3 = e.t0.v0;
+    				else if(!(e.t0.v1.equals(e.v0) || e.t0.v1.equals(e.v1))) p3 = e.t0.v1;
+    				else if (!(e.t0.v2.equals(e.v0) || e.t0.v2.equals(e.v1))) p3 = e.t0.v2;
+    				else
+    				{
+    					p3 = null;
+    					System.out.println("t0 verticies not ordered correctly when calculating bending constraints");
+    				}
+    				
+
+    				if(!(e.t1.v0.equals(e.v1) || e.t1.v0.equals(e.v0))) p4 = e.t1.v0;
+    				else if (!(e.t1.v1.equals(e.v1) || e.t1.v1.equals(e.v0))) p4 = e.t1.v1;
+    				else if (!(e.t1.v2.equals(e.v1) || e.t1.v2.equals(e.v0))) p4 = e.t1.v2;
+    				else
+    				{
+    					p4 = null;
+    					System.out.println("t1 verticies not ordered correctly when calculating bending constraints");
+    				}
+    				
+    				
+    				CPerm.add(new BendConstraint(p1, p2, p3, p4, Math.PI));
+    			}
     		}
+    		
+    		
     	}
     }
     
@@ -456,21 +485,20 @@ public class ParticleSystem //implements Serializable
      */
     public synchronized void display(GL2 gl) 
     {
-	for(Force force : F) {
-	    force.display(gl);
-	}
+    	for(Force force : F)
+    	{
+    		force.display(gl);
+    	}
 
-	if(!init) init(gl);
+    	if(!init) init(gl);
 
-	prog.useProgram(gl, true);
+    	prog.useProgram(gl, true);
 	
-	for(Particle particle : P) {
-	    particle.display(gl);
-	}
+    	for(Particle particle : P)
+    	{
+    		particle.display(gl);
+    	}
 
-	prog.useProgram(gl, false);
+    	prog.useProgram(gl, false);
     }
-
-
-
 }
