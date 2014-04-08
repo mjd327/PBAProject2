@@ -3,6 +3,8 @@ package cs5643.particles;
 import java.util.*;
 import javax.vecmath.*;
 import javax.media.opengl.*;
+import javax.media.opengl.glu.GLU;
+
 import com.jogamp.opengl.util.glsl.*;
 
 
@@ -56,6 +58,8 @@ public class ParticleSystem //implements Serializable
 
     /** Basic constructor. */
     public ParticleSystem() {}
+    
+    public Particle selectedParticle = null; //Replaced when ever mouse is pressed. 
 
     /** 
      * Set up the GLSL program. This requires that the current directory (i.e. the package in which
@@ -127,7 +131,11 @@ public class ParticleSystem //implements Serializable
 	    p.x.set(p.x0);
 	    p.v.set(0,0,0);
 	    p.f.set(0,0,0);
-	    p.setHighlight(false);
+	    p.m = p.m0; 
+	    p.w = 1.0/p.m;
+	    p.pinHighlight = false;
+	    p.dragHighlight = false; 
+	    p.pinned = false; 
 	}
 	time = 0;
     }
@@ -148,23 +156,29 @@ public class ParticleSystem //implements Serializable
 	/// TIME-STEP: (Forward Euler for now):
 	for(Particle p : P) 
 	{
-	    p.v.scaleAdd(dt, p.f, p.v); //p.v += dt * p.f;
+		if(p.pinned == false)
+		{
+	    p.v.scaleAdd((dt*p.w), p.f, p.v); //p.v += dt * p.f;
+		}
 	}
-	//dampVelocities()
-	test = true; 
+	dampVelocities();
 	for(Particle p : P)
 	{
-	    p.p.scaleAdd(dt, p.v, p.x); //p.p = p.x + dt * p.v; 
+		if (p.pinned == false)
+		{
+	    p.p.scaleAdd(dt, p.v, p.x); //p.p = p.x + dt * p.v;
+		}
 	}
 	for(Particle p : P)
 	{
 		//generateCollisionConstraints(xi->pi (?) );
 		wallCollisionDetector(p);
+		
 	}
 	for(int i = 0; i < Constants.SOLVER_ITERATIONS; i++)
 	{
-		System.out.println("Test");
 		//projectConstraints(C1,...,CM+MColl,p1,...,pn);
+
 		for(Constraint c : CPerm)
 		{
 			projectConstraint(c);
@@ -176,10 +190,13 @@ public class ParticleSystem //implements Serializable
 	}
 	for(Particle p : P)
 	{
+		if (p.pinned == false)
+		{
 		temp.sub(p.p,p.x);
 		temp.scale(1.0/dt);
 		p.v.set(temp); 
 		p.x.set(p.p);
+		}
 	}
 	//velocityUpdate(v1,...,Vn);
 	CTemp.clear();
@@ -189,7 +206,8 @@ public class ParticleSystem //implements Serializable
     /** Projects a given constraint and move particle accordingly. */
     public synchronized void projectConstraint(Constraint c)
     {
-    	if(c.type == 0 || c.evaluateConstraint() <= 0)
+    	if((c.type == 0 && Math.abs(c.evaluateConstraint()) >= .0000001) 
+    			|| (c.type == 1 && c.evaluateConstraint() <= -.0000001))
     	{
     		//We need the scaling factor for our delta P calculation.
     		double s = calculateScalingFactor(c);
@@ -198,7 +216,11 @@ public class ParticleSystem //implements Serializable
     		for(Particle p : c.particles)
     		{
     			gradient = c.gradient(p); 
-    			gradient.scale(s * p.w);
+    			gradient.scale(s * p.w * c.kPrime);
+    			if(gradient.y > .000001 && gradient.y < -.0000001)
+    			{
+    				System.out.println("Here we are");
+    			}
     			p.p.add(gradient);  
 
     		}
@@ -288,8 +310,147 @@ public class ParticleSystem //implements Serializable
     	}
     }
     
-    /**
+    /** Calculates center of masses and dampens all the velocities of the particle system as detailed
+     * in section 3.5 of the Meuller paper
+     */
+    public synchronized void dampVelocities()
+    {
+    	//Calculate position and velocity of center of mass
+    	Point3d xCM = new Point3d();  
+    	Point3d vCM = new Point3d(); 
+    	double sigmaM = 0;  //Can be pre-calculated
+    	Point3d tempPoint = new Point3d();
+    	Vector3d tempVector = new Vector3d(); 
+    	for(Particle p : P)
+    	{
+    		tempPoint.set(p.x);
+    		tempVector.set(p.v);
+    		tempPoint.scale(p.m);
+    		tempVector.scale(p.m); 
+    		xCM.add(tempPoint);
+    		vCM.add(tempVector);
+    		sigmaM += p.m;
+    	}
+    	xCM.scale(1/sigmaM);
+    	vCM.scale(1/sigmaM);
+    	
+    	//Find distance of each particle from the center of mass. 
+    	Vector3d R = new Vector3d(); 
+    	//Calculate L and I
+    	Vector3d L = new Vector3d(); 
+    	Matrix3d I = new Matrix3d(); 
+    	Matrix3d ri = new Matrix3d();
+    	for(Particle p : P)
+    	{
+    		//L
+    		R.sub(p.x,xCM);
+    		tempVector.set(p.v);
+    		tempVector.scale(p.m);
+    		tempVector.cross(R, tempVector);
+    		L.add(tempVector);
+    		
+    		//I
+    		ri.set(new double[]{0,-R.z,R.y,R.z,0,-R.x,-R.y,R.x,0});
+    		ri.mulTransposeRight(ri,ri);
+    		ri.mul(p.m,ri);
+    		I.add(ri);
+    	}
+    	
+    	//Finally calculate angular velocity and then update velocities. 
+    	Vector3d w = new Vector3d(); 
+    	I.invert();
+    	I.transform(L);
+    	w.set(L);
+    	Vector3d dV = new Vector3d();
+    	for(Particle p : P)
+    	{
+    		R.sub(p.x,xCM);
+    		tempVector.set(w);
+    		tempVector.cross(tempVector,R);
+    		dV.set(vCM);
+    		dV.add(tempVector); 
+    		dV.sub(p.v);
+    		p.v.scaleAdd(Constants.K_DAMP, dV, p.v);
+    		
+    	}
+    	
+    }
+    /** Set the mass and inverse mass of the particles based on the density, rho, of the cloth.*/
+    public synchronized void initializeParticleMasses()
+    {
+    	double area = 0; 
+    	for(Particle p : P)
+    	{
+    		area = 0; 
+    		for(Triangle t :((Vertex)p).triangles)
+    		{
+    			area += t.area*(1/3.0);
+    		}
+    		p.m = Constants.RHO*area;
+    		p.m0 = p.m; 
+    		p.w = 1.0/p.m;
+    	}
+    }
 
+    /** Given an X and Y in screen space, project a ray into world space 
+     * and turn select closest particle.*/
+	public void selectParticle(Point3d nearPoint, Point3d farPoint)
+	{
+		Point3d origin = new Point3d(nearPoint); //just use directly?
+		Vector3d direction = new Vector3d();
+		direction.sub(farPoint,nearPoint);
+		
+		Particle closestP = null; 
+		double length = Double.MAX_VALUE; //How far point is from ray. 
+		Vector3d vP = new Vector3d(); 
+		Vector3d crossProduct = new Vector3d(); 
+		for(Particle p : P)
+		{
+			if(direction.dot(vP) >= 0)
+			{
+				vP.sub(p.x,origin); //p.p?? Depends on before or after. 
+				crossProduct.cross(direction, vP);
+				crossProduct.scale(direction.length());
+				if (crossProduct.length() < length)
+				{
+					length = crossProduct.length();
+					closestP = p; 
+				}
+			}
+		}
+		if (closestP == null)
+		{
+			System.out.println("No particle in range");
+		}
+		else 
+		{
+			selectedParticle = closestP; 
+			closestP.selectParticle(); 
+		}
+	}
+	
+	public void deselectParticle(boolean flipPin)
+	{
+		selectedParticle.deselectParticle(flipPin);
+	}
+
+	/**Drags the selected particle to the given position. */
+	public void dragParticle(Point3d nearPoint, Point3d farPoint)
+	{
+		Point3d origin = new Point3d(nearPoint); //just use directly?
+		Vector3d direction = new Vector3d();
+		direction.sub(farPoint,nearPoint);
+		Vector3d vP = new Vector3d(); 
+		vP.sub(selectedParticle.x,origin); //p.p?? Depends on before or after. 
+		
+		double pDotR = direction.dot(vP);
+		direction.scale(1/direction.lengthSquared());
+		direction.scale(pDotR);
+		direction.add(origin);
+		selectedParticle.x.set(direction); 
+		selectedParticle.p.set(direction);
+	}
+	
     /**
      * Displays Particle and Force objects.
      */
@@ -309,5 +470,7 @@ public class ParticleSystem //implements Serializable
 
 	prog.useProgram(gl, false);
     }
+
+
 
 }

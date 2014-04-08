@@ -14,7 +14,9 @@ public abstract class Constraint {
 	public List<Particle> particles = new LinkedList<Particle>();
 	
 	public double stiffness;
-		
+	//Stiffness adjusted by timestep.
+	public double kPrime; //Could be computed once?
+	
 	//Evaluates constraint equation
 	public abstract double evaluateConstraint();
 	

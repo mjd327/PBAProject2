@@ -16,15 +16,20 @@ public interface Constants
     public static final double CAM_COS_THETA     			= Math.cos(0.2);
 
     /**Number of iterations for solver. */
-    public static final int SOLVER_ITERATIONS 	 = 1; 
+    public static final int SOLVER_ITERATIONS 	 = 3; 
     
     /** Stiffness constant for stretch constraint. */
-    public static final double STRETCH_STIFFNESS 			= 1; 
+    public static final double STRETCH_STIFFNESS 			= .5; 
     
     /** Stiffness constant for particle plane constraint. */ 
     public static final double PARTICLE_PLANE_STIFFNESS		= 1;
 
+    /** Cloth density. */
+    public static final double RHO = 10; 
     /** Cloth thickness. */ 
     public static final double h = 0; 
+    
+    /** Damping constant. */
+    public static final double K_DAMP = .05; 
 
 }

@@ -56,6 +56,12 @@ public class ParticleSystemBuilder implements GLEventListener
 
     /** Position of the light. Fixed at the location of the camera. */
     private float[] lightPos = {0f, 0f, 0f, 1f};
+
+	private boolean mouseSelecting = false;
+	private boolean mouseDragging = false; 
+	private boolean mouseDragged = true; 
+	private double mouseX = 0; //Used for pinning and dragging. 
+	private double mouseY = 0;
     
     /** Main constructor. Call start() to begin simulation. */
     ParticleSystemBuilder() 
@@ -167,14 +173,39 @@ public class ParticleSystemBuilder implements GLEventListener
 	GL2 gl = drawable.getGL().getGL2();
 	gl.glClearColor(0.1f,0.1f,0.2f,1f);
 	gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
-
 	/// GET READY TO DRAW:
 	gl.glMatrixMode(GL2.GL_MODELVIEW);
 	if (glu == null) glu = GLU.createGLU();
 	gl.glLoadIdentity();
 	glu.gluPerspective(5, (float)width/height, 1, 100);
 	glu.gluLookAt(eyePos.x, eyePos.y, eyePos.z, targetPos.x, targetPos.y, targetPos.z, 0, 1, 0);
-
+	if(mouseSelecting || mouseDragging)
+	{
+		int viewport[] = new int[4];
+		double modelview[] = new double[16];
+		double projection[] = new double[16];
+		double wcoordNear[] = new double[4];
+		double wcoordFar[] = new double[4];
+		gl.glGetDoublev(GL2.GL_MODELVIEW_MATRIX, modelview, 0 );
+		gl.glGetDoublev(GL2.GL_PROJECTION_MATRIX, projection, 0 );
+		gl.glGetIntegerv(GL2.GL_VIEWPORT, viewport, 0 );
+		glu.gluUnProject(mouseX, mouseY, 0.0, modelview, 0, 
+				projection, 0, viewport, 0, wcoordNear, 0);
+		glu.gluUnProject(mouseX, mouseY, 1.0, modelview, 0, 
+				projection, 0, viewport, 0, wcoordFar, 0);
+		Point3d nearPoint = new Point3d(wcoordNear[0],wcoordNear[1],wcoordNear[2]);
+		Point3d farPoint = new Point3d(wcoordFar[0], wcoordFar[1],wcoordFar[2]);
+		if(mouseSelecting)
+		{
+			PS.selectParticle(nearPoint,farPoint);	 
+			mouseSelecting  = false;
+		}
+		else
+		{
+			PS.dragParticle(nearPoint, farPoint);
+			mouseDragging = false; 
+		}
+	}
 	/// DRAW COMPUTATIONAL CELL BOUNDARY:
 	gl.glColor3f(1, 0, 0);
 	gl.glBegin(GL2.GL_LINE_LOOP);
@@ -223,7 +254,7 @@ public class ParticleSystemBuilder implements GLEventListener
 	    AbstractButton[] buttons      = { new JButton("Reset"),
 					      new JButton("Load File"),
 					      new JToggleButton ("Create Particle", false), 
-					      new JToggleButton ("[Some Other Task]", false),
+					      new JToggleButton ("Create Pin", false),
 					      };
 	    
 	    for(int i=0; i<buttons.length; i++) {
@@ -303,6 +334,9 @@ public class ParticleSystemBuilder implements GLEventListener
 		}
 		else if(cmd.equals("Create Particle")){
 		    task = new CreateParticleTask();
+		}
+		else if(cmd.equals("Create Pin")){
+			task = new CreatePinTask(); 
 		}
 		else if(cmd.equals("Load File")){
 		    loadMeshFromFile();
@@ -437,6 +471,32 @@ public class ParticleSystemBuilder implements GLEventListener
 	    }
 	}
 	
+	/**Clicking task that creates pins. */
+	class CreatePinTask extends Task
+	{
+		public void mousePressed (MouseEvent e)
+		{
+			mouseX = e.getX();
+			mouseY = height - e.getY(); 
+			mouseSelecting = true; 
+		}
+		public void mouseDragged (MouseEvent e)
+		{
+			mouseX = e.getX();
+			mouseY = height - e.getY();
+			mouseDragging = true; 
+			mouseDragged = true; 
+		}
+		public void mouseReleased (MouseEvent e)
+		{
+			PS.deselectParticle(!mouseDragged);
+			mouseDragged = false; 
+		}
+	    void reset() {
+		taskSelector.resetToRest(); //sets task=null;
+	    }
+	}
+	
     }
 
     /** 
@@ -462,8 +522,9 @@ public class ParticleSystemBuilder implements GLEventListener
     		PS.reset();
     		PS.P.clear();
     		PS.M.add(MeshBuilder.buildMesh(file, PS));
-    		//MOVE TO SOME INITIAL LOOP 
+    		//MOVE TO SOME INITIAL LOOP?
 			PS.initialConstraints(); 
+			PS.initializeParticleMasses(); 
 
 
     	} catch(Exception e) {
