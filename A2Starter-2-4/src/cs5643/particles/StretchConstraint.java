@@ -14,7 +14,6 @@ public class StretchConstraint extends Constraint {
 		type = 0; 
 		stiffness = Constants.STRETCH_STIFFNESS;
 		kPrime = 1 - Math.pow(1-stiffness,(1.0/Constants.SOLVER_ITERATIONS));
-
 		cardinality = 2; 
 		l0 = restLength; 
 		particles.add(v0);

@@ -15,7 +15,7 @@ public class ParticlePlaneConstraint extends Constraint {
 	public ParticlePlaneConstraint(Particle q, Point3d p1, Point3d p2, Point3d p3){
 		type = 1; 
 		stiffness = Constants.PARTICLE_PLANE_STIFFNESS;
-		kPrime = Math.pow(1-(1-stiffness),(1/Constants.SOLVER_ITERATIONS));
+		kPrime = stiffness;
 		cardinality = 4;
 		particles.add(q);
 		planePoints.add(p1);

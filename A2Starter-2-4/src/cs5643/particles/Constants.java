@@ -16,10 +16,10 @@ public interface Constants
     public static final double CAM_COS_THETA = Math.cos(0.2);
 
     /**Number of iterations for solver. */
-    public static final int SOLVER_ITERATIONS = 1; 
+    public static final int SOLVER_ITERATIONS = 5; 
     
     /** Stiffness constant for stretch constraint. */
-    public static final double STRETCH_STIFFNESS = 1; 
+    public static final double STRETCH_STIFFNESS = .6; 
     
     /**Stiffness constant for bend constraint. */
     public static final double BEND_STIFFNESS = .1;

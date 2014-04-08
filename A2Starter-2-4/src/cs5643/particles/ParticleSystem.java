@@ -205,7 +205,7 @@ public class ParticleSystem //implements Serializable
     /** Projects a given constraint and move particle accordingly. */
     public synchronized void projectConstraint(Constraint c)
     {
-    	if((c.type == 0 && Math.abs(c.evaluateConstraint()) > Constants.epsilon) || (c.type ==1 && c.evaluateConstraint() <= 0)) 
+    	if((c.type == 0 && Math.abs(c.evaluateConstraint()) > Constants.epsilon) || (c.type == 1 && c.evaluateConstraint() <= -Constants.epsilon)) 
     	{
     		//We need the scaling factor for our delta P calculation.
     		double s = calculateScalingFactor(c);
@@ -317,7 +317,7 @@ public class ParticleSystem //implements Serializable
     				else
     				{
     					p3 = null;
-    					System.out.println("t0 verticies not ordered correctly when calculating bending constraints");
+    					System.out.println("t0; verticies not ordered correctly when calculating bending constraints");
     				}
     				
 
@@ -327,33 +327,11 @@ public class ParticleSystem //implements Serializable
     				else
     				{
     					p4 = null;
-    					System.out.println("t1 verticies not ordered correctly when calculating bending constraints");
+    					System.out.println("t1; verticies not ordered correctly when calculating bending constraints");
     				}
-    				
-    				/*
-    				Vector3d a2 = new Vector3d(p2.x.x - p1.x.x,	p2.x.y - p1.x.y, p2.x.z - p1.x.z);
-    				Vector3d a3 = new Vector3d(p3.x.x - p1.x.x,	p3.x.y - p1.x.y, p3.x.z - p1.x.z);
-    				Vector3d a4 = new Vector3d(p4.x.x - p1.x.x,	p4.x.y - p1.x.y, p3.x.z - p1.x.z);
-    				Vector3d n1 = new Vector3d();
-    				Vector3d n2 = new Vector3d();
-    				n1.cross(a2,a3);
-    				n2.cross(a2,a4);
-    				n1.normalize();
-    				n2.normalize();
-    				
-    				n1.cross(n1,n2);
-    				if(n1.length() == 0)
-    				{
-    					System.out.println("p1 = (" + p1.x.x + ", " + p1.x.y + ", " + p1.x.z + ")\n");
-    					System.out.println("p2 = (" + p2.x.x + ", " + p2.x.y + ", " + p2.x.z + ")\n");
-    					System.out.println("p3 = (" + p3.x.x + ", " + p3.x.y + ", " + p3.x.z + ")\n");
-    					System.out.println("p4 = (" + p4.x.x + ", " + p4.x.y + ", " + p1.x.z + ")\n\n");
-    					
-    					continue;
-    				}
-    				*/
     				
 
+    				//CPerm.add(new BendConstraint(p1, p2, p3, p4, BendConstraint.angleBetween(p1,p2,p3,p4)));
     				CPerm.add(new BendConstraint(p1, p2, p3, p4, Math.PI));
     			}
     		}
