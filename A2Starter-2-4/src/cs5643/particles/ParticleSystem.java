@@ -128,13 +128,14 @@ public class ParticleSystem //implements Serializable
     {
 	for(Particle p : P)  {
 	    p.x.set(p.x0);
+	    p.p.set(p.x0);
 	    p.v.set(0,0,0);
 	    p.f.set(0,0,0);
 	    p.m = p.m0; 
 	    p.w = 1.0/p.m;
 	    p.pinHighlight = false;
 	    p.dragHighlight = false; 
-	    p.pinned = false; 
+	    p.pinned = false;
 	}
 	time = 0;
     }
