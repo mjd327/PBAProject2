@@ -33,18 +33,17 @@ public class BendConstraint extends Constraint
 		Vector3d p4 = new Vector3d(particles.get(3).p.x -particles.get(0).p.x,
 				particles.get(3).p.y -particles.get(0).p.y, particles.get(3).p.z -particles.get(0).p.z);
 		
-		//are p1-4 relative here?
 		n1.cross(p2,p3);
 		n2.cross(p2,p4);
 		n1.normalize();
 		n2.normalize();
 		d = n1.dot(n2);
 
-		System.out.println("Initial Constraint: " + (Math.acos(n1.dot(n2)) - phi0));
-		//if(Double.isNaN((Math.acos(n1.dot(n2)) - phi0)))
-		//{
-		//	System.out.println("stop");
-		//}
+		//System.out.println("Evaluated Constraint: " + (Math.acos(n1.dot(n2)) - phi0));
+		if(Double.isNaN((Math.acos(n1.dot(n2)) - phi0)))
+		{
+			System.out.println("Constraint evaluatd to NaN");
+		}
 		return Math.acos(n1.dot(n2)) - phi0;
 
 	}

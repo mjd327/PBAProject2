@@ -165,9 +165,8 @@ public class ParticleSystem //implements Serializable
 	}
 	for(int i = 0; i < Constants.SOLVER_ITERATIONS; i++)
 	{
-		//System.out.println("Test");
-		//projectConstraints(C1,...,CM+MColl,p1,...,pn);
-		for(Constraint c : CPerm)
+		//projectConstraints(C1,...,CM+MColl,p1,...,pn)
+		for(Constraint c : CPerm)			
 		{
 			projectConstraint(c);
 		}
@@ -200,7 +199,7 @@ public class ParticleSystem //implements Serializable
     		for(Particle p : c.particles)
     		{
     			gradient = c.gradient(p);
-    			gradient.scale(s * p.w);
+    			gradient.scale(s * p.w * c.stiffness);
     			p.p.add(gradient);
     		}
     	}
@@ -316,8 +315,30 @@ public class ParticleSystem //implements Serializable
     					System.out.println("t1 verticies not ordered correctly when calculating bending constraints");
     				}
     				
+    				/*
+    				Vector3d a2 = new Vector3d(p2.x.x - p1.x.x,	p2.x.y - p1.x.y, p2.x.z - p1.x.z);
+    				Vector3d a3 = new Vector3d(p3.x.x - p1.x.x,	p3.x.y - p1.x.y, p3.x.z - p1.x.z);
+    				Vector3d a4 = new Vector3d(p4.x.x - p1.x.x,	p4.x.y - p1.x.y, p3.x.z - p1.x.z);
+    				Vector3d n1 = new Vector3d();
+    				Vector3d n2 = new Vector3d();
+    				n1.cross(a2,a3);
+    				n2.cross(a2,a4);
+    				n1.normalize();
+    				n2.normalize();
     				
-    				CPerm.add(new BendConstraint(p1, p2, p3, p4, BendConstraint.angleBetween(p1, p2, p3, p4)));
+    				n1.cross(n1,n2);
+    				if(n1.length() == 0)
+    				{
+    					System.out.println("p1 = (" + p1.x.x + ", " + p1.x.y + ", " + p1.x.z + ")\n");
+    					System.out.println("p2 = (" + p2.x.x + ", " + p2.x.y + ", " + p2.x.z + ")\n");
+    					System.out.println("p3 = (" + p3.x.x + ", " + p3.x.y + ", " + p3.x.z + ")\n");
+    					System.out.println("p4 = (" + p4.x.x + ", " + p4.x.y + ", " + p1.x.z + ")\n\n");
+    					
+    					continue;
+    				}
+    				*/
+    				
+    				CPerm.add(new BendConstraint(p1, p2, p3, p4, Math.PI));
     			}
     		}
     		
