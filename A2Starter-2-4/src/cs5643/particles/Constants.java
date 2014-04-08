@@ -22,13 +22,18 @@ public interface Constants
     public static final double STRETCH_STIFFNESS = 1; 
     
     /**Stiffness constant for bend constraint. */
-    public static final double BEND_STIFFNESS = .01;
+    public static final double BEND_STIFFNESS = .1;
     
     /** Stiffness constant for particle plane constraint. */ 
     public static final double PARTICLE_PLANE_STIFFNESS	= 1;
 
+    /** Cloth density. */
+    public static final double RHO = 10; 
     /** Cloth thickness. */ 
     public static final double h = 0; 
+    
+    /** Damping constant. */
+    public static final double K_DAMP = .05; 
     
     public static final double epsilon = 10e-6;
 

@@ -13,6 +13,9 @@ public class Vertex extends Particle {
     /** A list of incident edges. See Mesh.java for details. */
     public ArrayList<Edge> edges = new ArrayList<Edge>();
 
+    /** A list of incident triangles.*/
+    public ArrayList<Triangle> triangles = new ArrayList<Triangle>(); 
+    
     /** Default constructor.
      * @param x0 The initial position of the Vertex.
      */

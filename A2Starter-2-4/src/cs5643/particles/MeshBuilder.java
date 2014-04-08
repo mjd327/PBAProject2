@@ -82,7 +82,9 @@ public class MeshBuilder {
 		Vertex v1 = result.vertices.get(indices[1]);
 		Vertex v2 = result.vertices.get(indices[2]);
 		Triangle t = new Triangle(v0, v1, v2);
-
+		v0.triangles.add(t);
+		v1.triangles.add(t);
+		v2.triangles.add(t); 
 		result.triangles.add(t);
 
 		// Create/modify edges

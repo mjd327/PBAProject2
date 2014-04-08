@@ -19,11 +19,15 @@ public class Particle
     private static int PARTICLE_DISPLAY_LIST = -1;
 
     /** Highlighted appearance if true, otherwise white. */
-    private boolean highlight = false;
+    public boolean pinHighlight = false;
+    public boolean dragHighlight = false; 
 
     /** Default mass. */
     double   m = Constants.PARTICLE_MASS;
 
+    /** Original mass, used for pinning and unpinning. */
+    double m0 = m; 
+    
     /** Default inverse mass. */
     double w = 1/m; 
     
@@ -41,6 +45,9 @@ public class Particle
 
     /** Force accumulator. */
     Vector3d f = new Vector3d();
+    
+    public boolean pinned = false; 
+    public boolean preSelectionPinned = false; 
 
     /** 
      * Constructs particle with the specified material/undeformed
@@ -50,6 +57,7 @@ public class Particle
     {
 	this.x0.set(x0);
 	x.set(x0);
+	p.set(x0);
     }
 
     /** Draws spherical particle using a display list. */
@@ -68,12 +76,15 @@ public class Particle
 	    PARTICLE_DISPLAY_LIST = displayListIndex;
 	}
 
-	/// COLOR: DEFAULT CYAN; GREEN IF HIGHLIGHTED
+	/// COLOR: DEFAULT CYAN; GREEN IF HIGHLIGHTED FOR PIN, PINK FOR DRAG
 	float[] c = {0f, 1f, 1f, 1f};//default: cyan
-	if(highlight) {
+
+	if(dragHighlight){
+		c[0] = 1; 
+	}
+	else if(pinHighlight) {
 	    c[2] = 0;
 	}
-	
 	// Hack to make things more colorful/interesting
 	c[1] = (float)x.y;
 
@@ -85,14 +96,50 @@ public class Particle
 	gl.glCallList(PARTICLE_DISPLAY_LIST); // Draw the particle
 	gl.glPopMatrix();
     }
-
+   /* 
     /** Specifies whether particle should be drawn highlighted. */
+    /*
     public void setHighlight(boolean highlight) { 
 	this.highlight = highlight;   
     }
     /** True if particle should be drawn highlighted. */
+    /*
     public boolean getHighlight() { 
 	return highlight; 
+    }
+    */
+    /**Used for setting particles as pins.*/
+    public void pinParticle() 
+    {
+    	this.pinHighlight = true; 
+    	this.m = 1000;
+    	this.w = 0; 
+    	pinned = true; 
+    }
+    
+    public void selectParticle()
+    {
+    	this.dragHighlight = true; 
+    	this.preSelectionPinned = pinned;
+    	pinParticle(); 
+    }
+    
+    public void deselectParticle(boolean flipPin)
+    {
+    	this.dragHighlight = false;
+    	if(flipPin)
+    	{
+    		if(this.preSelectionPinned) unPinParticle();
+    		else pinParticle(); 
+    	}
+    }
+    /**Used for returning pins to normal particles.*/
+    public void unPinParticle()
+    {
+    	this.pinHighlight = false;
+    	this.m = this.m0;
+    	this.w = 1.0/m; 
+    	pinned = false; 
     }
     
 }

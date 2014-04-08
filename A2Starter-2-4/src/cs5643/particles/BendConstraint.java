@@ -16,6 +16,7 @@ public class BendConstraint extends Constraint
 		type = 0;
 		cardinality = 4;
 		stiffness = Constants.BEND_STIFFNESS;
+		kPrime = 1 - Math.pow(1-stiffness,(1.0/Constants.SOLVER_ITERATIONS));
 		particles.add(p1);
 		particles.add(p2);
 		particles.add(p3);

@@ -12,7 +12,9 @@ public class StretchConstraint extends Constraint {
 	
 	public StretchConstraint(Particle v0, Particle v1, double restLength){
 		type = 0; 
-		stiffness = Constants.STRETCH_STIFFNESS; 
+		stiffness = Constants.STRETCH_STIFFNESS;
+		kPrime = 1 - Math.pow(1-stiffness,(1.0/Constants.SOLVER_ITERATIONS));
+
 		cardinality = 2; 
 		l0 = restLength; 
 		particles.add(v0);
@@ -25,7 +27,9 @@ public class StretchConstraint extends Constraint {
 		Vector3d diff = new Vector3d(); 
 		Particle p1 = particles.get(0);
 		Particle p2 = particles.get(1); 
-		diff.set(p1.x.x-p2.x.x, p1.x.y-p2.x.y, p1.x.z-p2.x.z);
+		//diff.set(p1.x.x-p2.x.x, p1.x.y-p2.x.y, p1.x.z-p2.x.z);
+		diff.set(p1.p.x-p2.p.x, p1.p.y-p2.p.y, p1.p.z-p2.p.z);
+
 		//Subtract length of edge  
 		return diff.length()-l0;
 	}
@@ -35,7 +39,9 @@ public class StretchConstraint extends Constraint {
 		Vector3d grad = new Vector3d();
 		Particle p1 = particles.get(0);
 		Particle p2 = particles.get(1); 
-		grad.set(p1.x.x-p2.x.x, p1.x.y-p2.x.y, p1.x.z-p2.x.z);
+		//grad.set(p1.x.x-p2.x.x, p1.x.y-p2.x.y, p1.x.z-p2.x.z);
+		grad.set(p1.p.x-p2.p.x, p1.p.y-p2.p.y, p1.p.z-p2.p.z);
+
 		grad.normalize();
 		if(p.equals(p1)) 
 		{
