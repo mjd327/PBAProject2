@@ -522,6 +522,10 @@ public class ParticleSystemBuilder implements GLEventListener
     		//Slightly edited from A1 to add Meshes. 
     		PS.reset();
     		PS.P.clear();
+    		PS.F.clear();
+    		PS.M.clear();
+    		PS.CPerm.clear();
+    		PS.CTemp.clear(); 
     		PS.M.add(MeshBuilder.buildMesh(file, PS));
     		//MOVE TO SOME INITIAL LOOP?
 			PS.initialConstraints(); 
