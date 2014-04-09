@@ -26,7 +26,6 @@ public class BendConstraint extends Constraint
 	@Override
 	public double evaluateConstraint()
 	{
-		//Point3d p1 = new Point3d(0,0,0);
 		Vector3d p2 = new Vector3d(particles.get(1).p.x -particles.get(0).p.x,
 				particles.get(1).p.y -particles.get(0).p.y, particles.get(1).p.z -particles.get(0).p.z);
 		Vector3d p3 = new Vector3d(particles.get(2).p.x -particles.get(0).p.x,
@@ -38,21 +37,20 @@ public class BendConstraint extends Constraint
 		n2.cross(p2,p4);
 		n1.normalize();
 		n2.normalize();
-		d = n1.dot(n2);
-
-		//System.out.println("Evaluated Constraint: " + (Math.acos(n1.dot(n2)) - phi0));
-		if(Double.isNaN((Math.acos(n1.dot(n2)) - phi0)))
+		d = Math.min(Math.max(-1, n1.dot(n2)), 1);;
+			
+		System.out.println("Evaluated Constraint: " + (Math.acos(d) - phi0));
+		if(Double.isNaN((Math.acos(d) - phi0)))
 		{
 			System.out.println("Constraint evaluatd to NaN");
 		}
-		return Math.acos(n1.dot(n2)) - phi0;
+		return Math.acos(d) - phi0;
 
 	}
 
 	@Override
 	public Vector3d gradient(Particle p)
 	{
-		//Point3d p1 = new Point3d(0,0,0);
 		Vector3d p2 = new Vector3d(particles.get(1).p.x -particles.get(0).p.x,
 				particles.get(1).p.y -particles.get(0).p.y, particles.get(1).p.z -particles.get(0).p.z);
 		Vector3d p3 = new Vector3d(particles.get(2).p.x -particles.get(0).p.x,
@@ -87,7 +85,7 @@ public class BendConstraint extends Constraint
 			temp1.scale(-1.0/temp2.length());
 			q2.add(temp1);
 			
-			q2.scale(-1.0/Math.sqrt(1-Math.pow(d,2)));			
+			q2.scale(1.0/Math.sqrt(1-Math.pow(d,2)));			
 		}
 		if(p.equals(particles.get(0)) || p.equals(particles.get(2)))
 		{
@@ -100,7 +98,7 @@ public class BendConstraint extends Constraint
 			temp1.scale(1.0/temp2.length());
 			q3.set(temp1.x, temp1.y, temp1.z);
 			
-			q3.scale(-1.0/Math.sqrt(1-Math.pow(d,2)));
+			q3.scale(1.0/Math.sqrt(1-Math.pow(d,2)));
 		}
 		if(p.equals(particles.get(0)) || p.equals(particles.get(3)))
 		{
@@ -113,7 +111,7 @@ public class BendConstraint extends Constraint
 			temp1.scale(1.0/temp2.length());
 			q4.set(temp1.x, temp1.y, temp1.z);
 			
-			q4.scale(-1.0/Math.sqrt(1-Math.pow(d,2)));
+			q4.scale(1.0/Math.sqrt(1-Math.pow(d,2)));
 			
 		}
 		if(p.equals(particles.get(0)))
@@ -129,7 +127,11 @@ public class BendConstraint extends Constraint
 		else if(p.equals(particles.get(1))) return q2;
 		else if(p.equals(particles.get(2))) return q3;
 		else if(p.equals(particles.get(3))) return q4;
-		else return null; //Should never happen!
+		else 
+		{
+			System.out.println("bad gradient");
+			return null; //Should never happen
+		}
 		
 	}
 	
@@ -148,11 +150,25 @@ public class BendConstraint extends Constraint
 		norm2.cross(v2,v4);
 		norm1.normalize();
 		norm2.normalize();
+		if(Double.isNaN(Math.acos(norm1.dot(norm2)))) System.out.println("initial angle is nan");
+		else System.out.println("initial angle is: " + ((180/Math.PI) * Math.acos(norm1.dot(norm2))));
+		
 		if(Double.isNaN(Math.acos(norm1.dot(norm2))))
 		{
-			System.out.println("initial angle is nan");
+			System.out.println("p0 = (" + p0.x.x + ", " + p0.x.y + ", " + p0.x.z + ")");
+			System.out.println("p1 = (" + p1.x.x + ", " + p1.x.y + ", " + p1.x.z + ")");
+			System.out.println("p2 = (" + p2.x.x + ", " + p2.x.y + ", " + p2.x.z + ")");
+			System.out.println("p3 = (" + p3.x.x + ", " + p3.x.y + ", " + p3.x.z + ")\n");
+		
+			System.out.println("v2 = (" + v2.x + ", " + v2.y + ", " + v2.z + ")");
+			System.out.println("v3 = (" + v3.x + ", " + v3.y + ", " + v3.z + ")");
+			System.out.println("v4 = (" + v4.x + ", " + v4.y + ", " + v4.z + ")\n");
+			
+			System.out.println(norm1.dot(norm2));
 		}
-		return Math.acos(norm1.dot(norm2));
+
+		double angle = Math.min(Math.max(-1, norm1.dot(norm2)), 1);
+		return Math.acos(angle);
 	}
 	
 	

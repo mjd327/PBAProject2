@@ -26,6 +26,9 @@ public interface Constants
     
     /** Stiffness constant for particle plane constraint. */ 
     public static final double PARTICLE_PLANE_STIFFNESS	= 1;
+    
+    /** */
+    public static final double BALLOON_PRESSURE = 1;
 
     /** Cloth density. */
     public static final double RHO = 10; 
