@@ -298,6 +298,9 @@ public class ParticleSystem //implements Serializable
     	
     	for(Mesh m : M)
     	{
+    		//Only use for Sphere mesh
+        	//CPerm.add(new BalloonConstraint(m.vertices.size(), m));
+        	
     		for(Edge e : m.edges)
     		{	
     			//Add all stretch constraints. 

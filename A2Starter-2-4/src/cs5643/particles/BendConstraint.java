@@ -39,11 +39,12 @@ public class BendConstraint extends Constraint
 		n2.normalize();
 		d = Math.min(Math.max(-1, n1.dot(n2)), 1);;
 			
-		System.out.println("Evaluated Constraint: " + (Math.acos(d) - phi0));
-		if(Double.isNaN((Math.acos(d) - phi0)))
-		{
-			System.out.println("Constraint evaluatd to NaN");
-		}
+		//System.out.println("Evaluated Constraint: " + (Math.acos(d) - phi0));
+		//if(Double.isNaN((Math.acos(d) - phi0)))
+		//{
+		//	System.out.println("Constraint evaluated to NaN");
+		//}
+		
 		return Math.acos(d) - phi0;
 
 	}
